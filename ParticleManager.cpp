@@ -271,6 +271,11 @@ void ParticleManager::InitializeGraphicsPipeline()
 			D3D12_APPEND_ALIGNED_ELEMENT,
 			D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0
 		},
+		{//スケール
+			"TEXCOORD",0,DXGI_FORMAT_R32_FLOAT,0,
+			D3D12_APPEND_ALIGNED_ELEMENT,
+			D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA,0
+		},
 	};
 
 	// グラフィックスパイプラインの流れを設定
@@ -536,13 +541,15 @@ void ParticleManager::UpdateViewMatrix()
 	matBillboardY.r[3] = XMVectorSet(0, 0, 0, 1);
 }
 
-void ParticleManager::Add(int life, XMFLOAT3 position, XMFLOAT3 velocity, XMFLOAT3 accel) {
+void ParticleManager::Add(int life, XMFLOAT3 position, XMFLOAT3 velocity, XMFLOAT3 accel, float start_scale, float end_scale) {
 	particles.emplace_front();
 	Particle& p = particles.front();
 	p.position = position;
 	p.velocity = velocity;
 	p.accel = accel;
 	p.num_frame = life;
+	p.s_scale = start_scale;
+	p.e_scale = end_scale;
 }
 
 bool ParticleManager::Initialize()
@@ -583,6 +590,9 @@ void ParticleManager::Update()
 		it->frame++;
 		it->velocity = it->velocity + it->accel;
 		it->position = it->position + it->velocity;
+		float f = (float)it->frame / it->num_frame;
+		it->scale = (it->e_scale - it->s_scale) * f;
+		it->scale += it->s_scale;
 	}
 	
 	//頂点バッファへデータ転送
@@ -591,6 +601,7 @@ void ParticleManager::Update()
 	if (SUCCEEDED(result)) {
 		for (std::forward_list<Particle>::iterator it = particles.begin(); it != particles.end(); it++) {
 			vertMap->pos = it->position;
+			vertMap->scale = it->scale;
 			vertMap++;
 		}
 		vertBuff->Unmap(0, nullptr);
