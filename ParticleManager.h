@@ -25,6 +25,7 @@ public: // サブクラス
 	//// 頂点データ構造体
 	struct VertexPos {
 		XMFLOAT3 pos;
+		float scale;
 	};
 
 	// 定数バッファ用データ構造体
@@ -41,6 +42,9 @@ public: // サブクラス
 		XMFLOAT3 position = {};
 		XMFLOAT3 velocity = {};
 		XMFLOAT3 accel = {};
+		float scale = 1.0f;
+		float s_scale = 1.0f;
+		float e_scale = 0.0f;
 		int frame = 0;
 		int num_frame = 0;
 	};
@@ -111,7 +115,7 @@ public: // 静的メンバ関数
 
 	static void CameraMoveEyeVector(XMFLOAT3 move);
 
-	void Add(int life, XMFLOAT3 position, XMFLOAT3 velocity, XMFLOAT3 accel);
+	void Add(int life, XMFLOAT3 position, XMFLOAT3 velocity, XMFLOAT3 accel,float start_scale,float end_scale);
 
 private: // 静的メンバ変数
 	// デバイス
