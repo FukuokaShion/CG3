@@ -609,6 +609,7 @@ void Object3d::UpdateViewMatrix()
 	assert(!XMVector3IsInfinite(cameraAxisZ));
 	assert(!XMVector3Equal(upVector, XMVectorZero()));
 	assert(!XMVector3IsInfinite(upVector));
+
 	cameraAxisZ = XMVector3Normalize(cameraAxisZ);
 
 	//X軸
@@ -618,15 +619,16 @@ void Object3d::UpdateViewMatrix()
 	//正規化
 	cameraAxisX = XMVector3Normalize(cameraAxisX);
 
-	//Y軸
+//-----Y軸--------
 	XMVECTOR cameraAxisY;
 	//外積
 	cameraAxisY = XMVector3Cross(cameraAxisZ, cameraAxisX);
-	//正規化
-	cameraAxisY = XMVector3Normalize(cameraAxisY);
+
+//----------------
 
 	//回転行列
 	XMMATRIX matCameraRot;
+
 	matCameraRot.r[0] = cameraAxisX;
 	matCameraRot.r[1] = cameraAxisY;
 	matCameraRot.r[2] = cameraAxisZ;
@@ -636,11 +638,10 @@ void Object3d::UpdateViewMatrix()
 	matView = XMMatrixTranspose(matCameraRot);
 
 	XMVECTOR reverseEyePosition = XMVectorNegate(eyePosition);
-	XMVECTOR a = { 0,0,0,1 };
 
-	XMVECTOR tx = XMVector3Dot(a, reverseEyePosition);
-	XMVECTOR ty = XMVector3Dot(a, reverseEyePosition);
-	XMVECTOR tz = XMVector3Dot(a, reverseEyePosition);
+	XMVECTOR tx = XMVector3Dot(cameraAxisX, reverseEyePosition);
+	XMVECTOR ty = XMVector3Dot(cameraAxisY, reverseEyePosition);
+	XMVECTOR tz = XMVector3Dot(cameraAxisZ, reverseEyePosition);
 
 	XMVECTOR translation = XMVectorSet(tx.m128_f32[0], ty.m128_f32[1], tz.m128_f32[2], 1.0f);
 
