@@ -39,15 +39,34 @@ void GameScene::Initialize(DirectXCommon* dxCommon, Input* input)
 
 void GameScene::Update()
 {
-	
 	// カメラ移動
-		if (input->PushKey(DIK_W)) { ParticleManager::CameraMoveEyeVector({ 0.0f,+0.1f,0.0f }); }
-		else if (input->PushKey(DIK_S)) { ParticleManager::CameraMoveEyeVector({ 0.0f,-0.1f,0.0f }); }
-		if (input->PushKey(DIK_D)) { ParticleManager::CameraMoveEyeVector({ +0.1f,0.0f,0.0f }); }
-		else if (input->PushKey(DIK_A)) { ParticleManager::CameraMoveEyeVector({ -0.1f,0.0f,0.0f }); }
-		if (input->PushKey(DIK_Q)) { ParticleManager::CameraMoveEyeVector({ 0.0f,0.0f,0.1f }); }
-		else if (input->PushKey(DIK_E)) { ParticleManager::CameraMoveEyeVector({ 0.0f,0.0f,-0.1f }); }
+	if (input->PushKey(DIK_W)) { ParticleManager::CameraMoveEyeVector({ 0.0f,+0.1f,0.0f }); }
+	else if (input->PushKey(DIK_S)) { ParticleManager::CameraMoveEyeVector({ 0.0f,-0.1f,0.0f }); }
+	if (input->PushKey(DIK_D)) { ParticleManager::CameraMoveEyeVector({ +0.1f,0.0f,0.0f }); }
+	else if (input->PushKey(DIK_A)) { ParticleManager::CameraMoveEyeVector({ -0.1f,0.0f,0.0f }); }
+	if (input->PushKey(DIK_Q)) { ParticleManager::CameraMoveEyeVector({ 0.0f,0.0f,0.1f }); }
+	else if (input->PushKey(DIK_E)) { ParticleManager::CameraMoveEyeVector({ 0.0f,0.0f,-0.1f }); }
 	
+
+	for (int i = 0; i < 100; i++) {
+		const float md_width = 10.0f;
+		XMFLOAT3 pos{};
+		pos.x = (float)rand() / RAND_MAX * md_width - md_width / 2.0f;
+		pos.y = (float)rand() / RAND_MAX * md_width - md_width / 2.0f;
+		pos.z = (float)rand() / RAND_MAX * md_width - md_width / 2.0f;
+
+		const float md_vel = 0.1f;
+		XMFLOAT3 vel{};
+		vel.x = (float)rand() / RAND_MAX * md_width - md_width / 2.0f;
+		vel.y = (float)rand() / RAND_MAX * md_width - md_width / 2.0f;
+		vel.z = (float)rand() / RAND_MAX * md_width - md_width / 2.0f;
+
+		XMFLOAT3 acc{};
+		const float md_acc = 0.001f;
+		acc.y = -(float)rand() / RAND_MAX * md_acc;
+
+		particleManager->Add(60, pos, vel, acc);
+	}
 
 	particleManager->Update();
 }
