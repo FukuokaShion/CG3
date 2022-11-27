@@ -19,7 +19,6 @@ ComPtr<ID3D12RootSignature> Object3d::rootsignature;
 ComPtr<ID3D12PipelineState> Object3d::pipelinestate;
 ComPtr<ID3D12DescriptorHeap> Object3d::descHeap;
 ComPtr<ID3D12Resource> Object3d::vertBuff;
-//ComPtr<ID3D12Resource> Object3d::indexBuff;
 ComPtr<ID3D12Resource> Object3d::texbuff;
 CD3DX12_CPU_DESCRIPTOR_HANDLE Object3d::cpuDescHandleSRV;
 CD3DX12_GPU_DESCRIPTOR_HANDLE Object3d::gpuDescHandleSRV;
@@ -29,10 +28,7 @@ XMFLOAT3 Object3d::eye = { 0, 0, -5.0f };
 XMFLOAT3 Object3d::target = { 0, 0, 0 };
 XMFLOAT3 Object3d::up = { 0, 1, 0 };
 D3D12_VERTEX_BUFFER_VIEW Object3d::vbView{};
-//D3D12_INDEX_BUFFER_VIEW Object3d::ibView{};
-//Object3d::VertexPosNormalUv Object3d::vertices[vertexCount];
 Object3d::VertexPos Object3d::vertices[vertexCount];
-//unsigned short Object3d::indices[indexCount];
 XMMATRIX Object3d::matBillboard = XMMatrixIdentity();
 XMMATRIX Object3d::matBillboardY = XMMatrixIdentity();
 
@@ -73,7 +69,6 @@ void Object3d::PreDraw(ID3D12GraphicsCommandList * cmdList)
 	// ルートシグネチャの設定
 	cmdList->SetGraphicsRootSignature(rootsignature.Get());
 	// プリミティブ形状を設定
-	//cmdList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	cmdList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_POINTLIST);
 }
 
@@ -166,7 +161,6 @@ void Object3d::InitializeDescriptorHeap()
 void Object3d::InitializeCamera(int window_width, int window_height)
 {
 	// ビュー行列の生成
-	//matView = XMMatrixLookAtLH(XMLoadFloat3(&eye), XMLoadFloat3(&target), XMLoadFloat3(&up));
 	UpdateViewMatrix();
 
 	// 平行投影による射影行列の生成
@@ -267,16 +261,6 @@ void Object3d::InitializeGraphicsPipeline()
 			D3D12_APPEND_ALIGNED_ELEMENT,
 			D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0
 		},
-		//{ // 法線ベクトル(1行で書いたほうが見やすい)
-		//	"NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0,
-		//	D3D12_APPEND_ALIGNED_ELEMENT,
-		//	D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0
-		//},
-		//{ // uv座標(1行で書いたほうが見やすい)
-		//	"TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0,
-		//	D3D12_APPEND_ALIGNED_ELEMENT,
-		//	D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0
-		//},
 	};
 
 	// グラフィックスパイプラインの流れを設定
@@ -289,8 +273,6 @@ void Object3d::InitializeGraphicsPipeline()
 	gpipeline.SampleMask = D3D12_DEFAULT_SAMPLE_MASK; // 標準設定
 	// ラスタライザステート
 	gpipeline.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
-	//gpipeline.RasterizerState.CullMode = D3D12_CULL_MODE_NONE;
-	//gpipeline.RasterizerState.FillMode = D3D12_FILL_MODE_WIREFRAME;
 	// デプスステンシルステート
 	gpipeline.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
 
@@ -317,7 +299,6 @@ void Object3d::InitializeGraphicsPipeline()
 	gpipeline.InputLayout.NumElements = _countof(inputLayout);
 
 	// 図形の形状設定（三角形）
-	//gpipeline.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
 	gpipeline.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_POINT;
 
 	gpipeline.NumRenderTargets = 1;	// 描画対象は1つ
@@ -431,137 +412,6 @@ void Object3d::CreateModel()
 {
 	HRESULT result = S_FALSE;
 
-	//std::vector<VertexPosNormalUv> realVertices;
-	//// 頂点座標の計算（重複あり）
-	//{
-	//	realVertices.resize((division + 1) * 2);
-	//	int index = 0;
-	//	float zValue;
-
-	//	// 底面
-	//	zValue = prizmHeight / 2.0f;
-	//	for (int i = 0; i < division; i++)
-	//	{
-	//		XMFLOAT3 vertex;
-	//		vertex.x = radius * sinf(XM_2PI / division * i);
-	//		vertex.y = radius * cosf(XM_2PI / division * i);
-	//		vertex.z = zValue;
-	//		realVertices[index++].pos = vertex;
-	//	}
-	//	realVertices[index++].pos = XMFLOAT3(0, 0, zValue);	// 底面の中心点
-	//	// 天面
-	//	zValue = -prizmHeight / 2.0f;
-	//	for (int i = 0; i < division; i++)
-	//	{
-	//		XMFLOAT3 vertex;
-	//		vertex.x = radius * sinf(XM_2PI / division * i);
-	//		vertex.y = radius * cosf(XM_2PI / division * i);
-	//		vertex.z = zValue;
-	//		realVertices[index++].pos = vertex;
-	//	}
-	//	realVertices[index++].pos = XMFLOAT3(0, 0, zValue);	// 天面の中心点
-	//}
-
-	//// 頂点座標の計算（重複なし）
-	//{
-	//	int index = 0;
-	//	// 底面
-	//	for (int i = 0; i < division; i++)
-	//	{
-	//		unsigned short index0 = i + 1;
-	//		unsigned short index1 = i;
-	//		unsigned short index2 = division;
-
-	//		vertices[index++] = realVertices[index0];
-	//		vertices[index++] = realVertices[index1];
-	//		vertices[index++] = realVertices[index2]; // 底面の中心点
-	//	}
-	//	// 底面の最後の三角形の1番目のインデックスを0に書き換え
-	//	vertices[index - 3] = realVertices[0];
-
-	//	int topStart = division + 1;
-	//	// 天面
-	//	for (int i = 0; i < division; i++)
-	//	{
-	//		unsigned short index0 = topStart + i;
-	//		unsigned short index1 = topStart + i + 1;
-	//		unsigned short index2 = topStart + division;
-
-	//		vertices[index++] = realVertices[index0];
-	//		vertices[index++] = realVertices[index1];
-	//		vertices[index++] = realVertices[index2]; // 天面の中心点
-	//	}
-	//	// 天面の最後の三角形の1番目のインデックスを0に書き換え
-	//	vertices[index - 2] = realVertices[topStart];
-
-	//	// 側面
-	//	for (int i = 0; i < division; i++)
-	//	{
-	//		unsigned short index0 = i + 1;
-	//		unsigned short index1 = topStart + i + 1;
-	//		unsigned short index2 = i;
-	//		unsigned short index3 = topStart + i;
-
-	//		if (i == division - 1)
-	//		{
-	//			index0 = 0;
-	//			index1 = topStart;
-	//		}
-
-	//		vertices[index++] = realVertices[index0];
-	//		vertices[index++] = realVertices[index1];
-	//		vertices[index++] = realVertices[index2];
-
-	//		vertices[index++] = realVertices[index2];
-	//		vertices[index++] = realVertices[index1];
-	//		vertices[index++] = realVertices[index3];
-	//	}
-	//}
-
-	//// 頂点インデックスの設定
-	//{
-	//	for (int i = 0; i < _countof(indices); i++)
-	//	{
-	//		indices[i] = i;
-	//	}
-	//}
-
-	//// 法線方向の計算
-	//for (int i = 0; i < _countof(indices) / 3; i++)
-	//{// 三角形１つごとに計算していく
-	//	// 三角形のインデックスを取得
-	//	unsigned short index0 = indices[i * 3 + 0];
-	//	unsigned short index1 = indices[i * 3 + 1];
-	//	unsigned short index2 = indices[i * 3 + 2];
-	//	// 三角形を構成する頂点座標をベクトルに代入
-	//	XMVECTOR p0 = XMLoadFloat3(&vertices[index0].pos);
-	//	XMVECTOR p1 = XMLoadFloat3(&vertices[index1].pos);
-	//	XMVECTOR p2 = XMLoadFloat3(&vertices[index2].pos);
-	//	// p0→p1ベクトル、p0→p2ベクトルを計算
-	//	XMVECTOR v1 = XMVectorSubtract(p1, p0);
-	//	XMVECTOR v2 = XMVectorSubtract(p2, p0);
-	//	// 外積は両方から垂直なベクトル
-	//	XMVECTOR normal = XMVector3Cross(v1, v2);
-	//	// 正規化（長さを1にする)
-	//	normal = XMVector3Normalize(normal);
-	//	// 求めた法線を頂点データに代入
-	//	XMStoreFloat3(&vertices[index0].normal, normal);
-	//	XMStoreFloat3(&vertices[index1].normal, normal);
-	//	XMStoreFloat3(&vertices[index2].normal, normal);
-	//}
-
-	//頂点データ
-	/*VertexPosNormalUv verticesSquare[] = {
-		{{-5.0f,-5.0f,5.0f},{0,0,1},{0,1}},
-		{{-5.0f,5.0f,5.0f},{0,0,1},{0,0}},
-		{{5.0f,-5.0f,5.0f},{0,0,1},{1,1}},
-		{{5.0f,5.0f,5.0f},{0,0,1},{1,0}}
-	};
-	std::copy(std::begin(verticesSquare), std::end(verticesSquare), vertices);*/
-
-	/*VertexPosNormalUv verticesPoint[] = {
-		{{0.0f,0.0f,0.0f},{0,0,1},{0,1}},
-	};*/
 	VertexPos verticesPoint[] = {
 			{{0.0f,0.0f,0.0f}}
 	};
@@ -573,9 +423,6 @@ void Object3d::CreateModel()
 		0,1,2,
 		2,1,3,
 	};
-
-	//std::copy(std::begin(indicesSquare), std::end(indicesSquare), indices);
-
 
 	UINT sizeVB = static_cast<UINT>(sizeof(vertices));
 
@@ -591,7 +438,6 @@ void Object3d::CreateModel()
 	assert(SUCCEEDED(result));
 
 	// 頂点バッファへのデータ転送
-	//VertexPosNormalUv* vertMap = nullptr;
 	VertexPos* vertMap = nullptr;
 	result = vertBuff->Map(0, nullptr, (void**)&vertMap);
 	if (SUCCEEDED(result)) {
@@ -604,40 +450,14 @@ void Object3d::CreateModel()
 	vbView.SizeInBytes = sizeof(vertices);
 	vbView.StrideInBytes = sizeof(vertices[0]);
 
-	//UINT sizeIB = static_cast<UINT>(sizeof(indices));
-	// リソース設定
-	//resourceDesc.Width = sizeIB;
-
-	// インデックスバッファ生成
-	/*result = device->CreateCommittedResource(
-		&heapProps, D3D12_HEAP_FLAG_NONE, &resourceDesc, D3D12_RESOURCE_STATE_GENERIC_READ, nullptr,
-		IID_PPV_ARGS(&indexBuff));*/
-
 	// インデックスバッファへのデータ転送
 	unsigned short* indexMap = nullptr;
-	//result = indexBuff->Map(0, nullptr, (void**)&indexMap);
-	//if (SUCCEEDED(result)) {
-
-	//	// 全インデックスに対して
-	//	for (int i = 0; i < _countof(indices); i++)
-	//	{
-	//		indexMap[i] = indices[i];	// インデックスをコピー
-	//	}
-
-	//	indexBuff->Unmap(0, nullptr);
-	//}
-
-	// インデックスバッファビューの作成
-	//ibView.BufferLocation = indexBuff->GetGPUVirtualAddress();
-	//ibView.Format = DXGI_FORMAT_R16_UINT;
-	//ibView.SizeInBytes = sizeof(indices);
 }
 
 
 void Object3d::UpdateViewMatrix()
 {
 	// ビュー行列の更新
-	//matView = XMMatrixLookAtLH(XMLoadFloat3(&eye), XMLoadFloat3(&target), XMLoadFloat3(&up));
 
 	XMVECTOR eyePosition = XMLoadFloat3(&eye);
 	XMVECTOR targetPosition = XMLoadFloat3(&target);
@@ -745,7 +565,7 @@ void Object3d::Update()
 	// ワールド行列の合成
 	matWorld = XMMatrixIdentity(); // 変形をリセット
 
-	//matWorld *= matBillboard;
+	//matWorld *= matBillboard; //ビルボード
 
 	matWorld *= matScale; // ワールド行列にスケーリングを反映
 	matWorld *= matRot; // ワールド行列に回転を反映
@@ -760,8 +580,6 @@ void Object3d::Update()
 	// 定数バッファへデータ転送
 	ConstBufferData* constMap = nullptr;
 	result = constBuff->Map(0, nullptr, (void**)&constMap);
-	//constMap->color = color;
-	//constMap->mat = matWorld * matView * matProjection;	// 行列の合成
 	constMap->mat = matView * matProjection;
 	constBuff->Unmap(0, nullptr);
 }
@@ -774,8 +592,6 @@ void Object3d::Draw()
 		
 	// 頂点バッファの設定
 	cmdList->IASetVertexBuffers(0, 1, &vbView);
-	// インデックスバッファの設定
-	//cmdList->IASetIndexBuffer(&ibView);
 
 	// デスクリプタヒープの配列
 	ID3D12DescriptorHeap* ppHeaps[] = { descHeap.Get() };
